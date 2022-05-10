@@ -1,3 +1,5 @@
+from cProfile import label
+from email import header
 import pandas as pd
 import numpy as np
 import argparse, os, logging
@@ -20,6 +22,57 @@ def init_log():
         logging.basicConfig(level=logging.CRITICAL, format='%(message)s')
 
 ################
+
+def data_stratify(chunk, fields, ratio, path_train, path_test):
+    # headers = chunk.columns.to_list()
+    grouped_data_test=chunk.groupby(fields, group_keys=False).apply(lambda x: x.sample(frac=ratio)) 
+    test_size = grouped_data_test.value_counts()
+    print("\n------\n")
+    # print(test_size)
+
+    print("\n------\n")
+
+    grouped_data_train = chunk[~chunk.isin(grouped_data_test)].dropna()
+
+    grouped_data_train.to_csv(path_train, mode='a', index=False, header=False)
+    grouped_data_test.to_csv(path_test, mode='a', index=False, header=False)
+
+
+    # group_data = chunk.groupby(fields)
+    # group_data_size = group_data.size()
+    # group_data_size_indexes = group_data_size .index.tolist()
+    # group_data_values = group_data_size .values.tolist()
+    # print(group_data)
+    # print(group_data_size )
+    # print(group_data_size_indexes)
+    # data_proportion = np.array(group_data_values)/np.array(chunk.shape[0])
+    # print(data_proportion)
+
+    # ungrouped_data = group_data.head(group_data.ngroup().size) # set it back to a DF.
+
+
+################
+
+def stratify(path, ratio, fields):
+    print("\nStarting splitting process..\n\n----------\n")
+    logging.info("Starting splitting process..\n\n----------\n")
+    headers = pd.read_csv(path, nrows=0).columns.to_list()
+
+    # Initializing new data_train.csv & new data_test.csv files.
+    data_train = pd.DataFrame(columns=headers)
+    path_train = os.path.join(os.path.dirname(path), "data_train.csv")
+    data_train.to_csv(path_train, index=False)
+
+    data_test = pd.DataFrame(columns=headers)
+    path_test = os.path.join(os.path.dirname(path), "data_test.csv")
+    data_test.to_csv(path_test, index=False)
+
+    chunksize = 50000
+    for chunk in pd.read_csv(path, chunksize=chunksize, iterator=True):
+        data_stratify(chunk, fields, ratio, path_train, path_test)
+        
+
+
 
 def stratify_data(path, ratio, fields):
     print("\nStarting splitting process..\n\n----------\n")
@@ -125,9 +178,12 @@ if __name__ == '__main__':
     try:
         init_log()
         path, ratio, fields = parse_args()
-        stratify_data(path, ratio, fields)
+        # stratify_data(path, ratio, fields)
+        stratify(path, ratio, fields)
     except Exception as e:
         print(f"An error has occurred. Please check log file for more information:\n{e}")
         logging.error(f"Error:\nAn error has occurred:\n{e}")
+    
+    
     logging.shutdown()
     print("Log file was successfully created. Program will shutdown now..")
