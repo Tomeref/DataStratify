@@ -1,7 +1,6 @@
 import pandas as pd
 import argparse, os, logging
 from datetime import datetime
-from sklearn.model_selection import train_test_split
 
 
 def init_log():
@@ -51,6 +50,7 @@ def data_stratify(chunk, fields, ratio, path_train, path_test):
 
 ################
 
+
 def stratify(path, ratio, fields):
     print("\nStarting splitting process..\n\n----------\n")
     logging.info("Starting splitting process..\n\n----------\n")
@@ -77,79 +77,6 @@ def stratify(path, ratio, fields):
     
     print("data_train.csv was successfully created.\ndata_test.csv was successfully created.\n")
     logging.info("data_train.csv was successfully created.\ndata_test.csv was successfully created.")
-
-        
-
-def stratify_data(path, ratio, fields):
-    print("\nStarting splitting process..\n\n----------\n")
-    logging.info("Starting splitting process..\n\n----------\n")
-    data = pd.read_csv(path).dropna() # Using dropna to remove rows with missing data.
-    headers = data.columns.to_list()
-
-    if ratio == 0 :
-        print("All of the data was set to train. No data will go into test, therefore data_test.csv file won't be created.")
-        data.to_csv("data_train.csv", index=False, header=headers)
-        logging.info("All of the data was set to train. No data will go into test, therefore data_test.csv file won't be created.\ndata_train.csv was successfully created.")
-        return
-    elif ratio == 1:
-        print("All of the data was set to test. No data will go into train, therefore data_train.csv file won't be created.")
-        data.to_csv("data_test.csv", index=False, header=headers)
-        logging.info("All of the data was set to test. No data will go into test, therefore data_train.csv file won't be created.\ndata_test.csv was successfully created.")
-        return
-
-    print("Data count per field to stratify before the split:\n")
-    logging.info("- Data count per field to stratify before the split -\n")
-    for field in fields:
-        print(data[field].value_counts().to_frame(field), "\n")
-        logging.info(f"{data[field].value_counts().to_frame(field)}\n")
-    print("----------\n")
-    logging.info("----------\n")
-
-    data = data.to_numpy()
-
-    # Creating a dict which includes the fields & its index.
-    indexes = list(range(0, len(headers)))
-    fields_dict = dict(zip(headers, indexes))
-
-    # To dynamically create the Y vector using the fields we are getting from the user.
-    field_idx = []
-    for field in fields:
-        field_idx.append(fields_dict[field])
-    
-    Y = []
-    temp_list_item = []
-    for el in data:
-        for i in field_idx:
-            temp_list_item.append(el[i])
-        Y.append(temp_list_item)
-        temp_list_item = []
-
-    try:
-        X_train, X_test, y_train, y_test = train_test_split(data, Y, test_size=ratio, stratify=Y)
-    except:
-        print("An error has occurred while splitting the data.\nThere might be too many fields to stratify versus the data that was provided.")
-        logging.error("Error:\nAn error has occurred while splitting the data.\nThere might be too many fields to stratify versus the data that was provided.")
-        return
-
-    df_xtrain = pd.DataFrame(X_train)
-    df_xtest = pd.DataFrame(X_test)
-
-    print("Train data count per field to stratify after the split :\n")
-    logging.info("- Train data count per field to stratify after the split -\n")
-    for idx in field_idx:
-        print(df_xtrain[idx].value_counts().to_frame(fields[idx]), "\n")
-        logging.info(f"{df_xtrain[idx].value_counts().to_frame(fields[idx])}\n")
-
-    print("Test data count per field to stratify after the split:")
-    logging.info("\n- Test data count per field to stratify after the split -\n")
-    for idx in field_idx:
-        print(df_xtest[idx].value_counts().to_frame(fields[idx]), "\n")
-        logging.info(f"{df_xtest[idx].value_counts().to_frame(fields[idx])}\n")
-
-    df_xtrain.to_csv("data_train.csv", index=False, header=headers)
-    df_xtest.to_csv("data_test.csv", index=False, header=headers)
-    print("----------\n\ndata_train.csv was successfully created.\ndata_test.csv was successfully created.\n")
-    logging.info("----------\n\ndata_train.csv was successfully created.\ndata_test.csv was successfully created.")
 
 
 # Creating the arguments to get the parameters through CLI.
