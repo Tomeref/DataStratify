@@ -28,18 +28,21 @@ def data_stratify(chunk, fields, ratio, path_train, path_test):
         logging.info(f"Field: {field}")
         print("Chunk data before split:")
         logging.info("Chunk data before split:")
-        print(chunk[field].value_counts().to_frame(field), "\n")
-        logging.info(f"{chunk[field].value_counts().to_frame(field)}\n")
+        chunk_count = chunk[field].value_counts()
+        print(chunk_count.to_frame(field), "\n")
+        logging.info(f"{chunk_count.to_frame(field)}\n")
 
+        train_count = grouped_data_train[field].value_counts()
         print("Train data after split:")
         logging.info("Train data after split:")
-        print(grouped_data_train[field].value_counts().to_frame(field), "\n")
-        logging.info(f"{grouped_data_train[field].value_counts().to_frame(field)}\n")
+        print(train_count.to_frame(field), "\n")
+        logging.info(f"{train_count.to_frame(field)}\n")
 
+        test_count = grouped_data_test[field].value_counts()
         print("Test data after split:")
         logging.info("Test data after split:")
-        print(grouped_data_test[field].value_counts().to_frame(field))
-        logging.info(f"{grouped_data_test[field].value_counts().to_frame(field)}")
+        print(test_count.to_frame(field))
+        logging.info(f"{test_count.value_counts().to_frame(field)}")
         
         print("\n----------\n")
         logging.info("\n----------\n")
@@ -49,7 +52,6 @@ def data_stratify(chunk, fields, ratio, path_train, path_test):
 
 
 ################
-
 
 def stratify(path, ratio, fields):
     print("\nStarting splitting process..\n\n----------\n")
