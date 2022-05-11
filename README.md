@@ -1,5 +1,5 @@
 # DataStratify
-Data stratifying model with Python, using various data science libraries.
+Data stratifying model with Python, without using designated ML libraries.
 
 
 ## User Manual:
