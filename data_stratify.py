@@ -21,31 +21,32 @@ def init_log():
 ################
 
 def data_stratify(chunk, fields, ratio, path_train, path_test):
-    # headers = chunk.columns.to_list()
     grouped_data_test=chunk.groupby(fields, group_keys=False).apply(lambda x: x.sample(frac=ratio)) 
-    test_size = grouped_data_test.value_counts()
-    print("\n------\n")
-    # print(test_size)
-
-    print("\n------\n")
-
     grouped_data_train = chunk[~chunk.isin(grouped_data_test)].dropna()
+
+    for field in fields:
+        print(f"Field: {field}")
+        logging.info(f"Field: {field}")
+        print("Chunk data before split:")
+        logging.info("Chunk data before split:")
+        print(chunk[field].value_counts().to_frame(field), "\n")
+        logging.info(f"{chunk[field].value_counts().to_frame(field)}\n")
+
+        print("Train data after split:")
+        logging.info("Train data after split:")
+        print(grouped_data_train[field].value_counts().to_frame(field), "\n")
+        logging.info(f"{grouped_data_train[field].value_counts().to_frame(field)}\n")
+
+        print("Test data after split:")
+        logging.info("Test data after split:")
+        print(grouped_data_test[field].value_counts().to_frame(field))
+        logging.info(f"{grouped_data_test[field].value_counts().to_frame(field)}")
+        
+        print("\n----------\n")
+        logging.info("\n----------\n")
 
     grouped_data_train.to_csv(path_train, mode='a', index=False, header=False)
     grouped_data_test.to_csv(path_test, mode='a', index=False, header=False)
-
-
-    # group_data = chunk.groupby(fields)
-    # group_data_size = group_data.size()
-    # group_data_size_indexes = group_data_size .index.tolist()
-    # group_data_values = group_data_size .values.tolist()
-    # print(group_data)
-    # print(group_data_size )
-    # print(group_data_size_indexes)
-    # data_proportion = np.array(group_data_values)/np.array(chunk.shape[0])
-    # print(data_proportion)
-
-    # ungrouped_data = group_data.head(group_data.ngroup().size) # set it back to a DF.
 
 
 ################
@@ -64,12 +65,20 @@ def stratify(path, ratio, fields):
     path_test = os.path.join(os.path.dirname(path), "data_test.csv")
     data_test.to_csv(path_test, index=False)
 
+    # Splitting the data into chunks, choosing a set amount of chunksize.
+    # In this way we will be able to read larger files.
     chunksize = 50000
+    chunk_count = 1
     for chunk in pd.read_csv(path, chunksize=chunksize, iterator=True):
+        print(f"- Chunk {chunk_count} -")
+        logging.info(f"- Chunk {chunk_count} -")
         data_stratify(chunk, fields, ratio, path_train, path_test)
+        chunk_count += 1
+    
+    print("data_train.csv was successfully created.\ndata_test.csv was successfully created.\n")
+    logging.info("data_train.csv was successfully created.\ndata_test.csv was successfully created.")
+
         
-
-
 
 def stratify_data(path, ratio, fields):
     print("\nStarting splitting process..\n\n----------\n")
@@ -175,12 +184,9 @@ if __name__ == '__main__':
     try:
         init_log()
         path, ratio, fields = parse_args()
-        # stratify_data(path, ratio, fields)
         stratify(path, ratio, fields)
     except Exception as e:
         print(f"An error has occurred. Please check log file for more information:\n{e}")
         logging.error(f"Error:\nAn error has occurred:\n{e}")
-    
-    
     logging.shutdown()
     print("Log file was successfully created. Program will shutdown now..")
